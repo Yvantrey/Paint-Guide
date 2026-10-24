@@ -1,0 +1,14 @@
+{
+  "id": "ocean_calm",
+  "name": "Ocean Calm",
+  "label": "Seascape · Simple flowing shapes",
+  "category": "painting",
+  "order": 2,
+  "finalImage": "ocean_calm_final",
+  "stages": [
+    { "title": "Outline", "instruction": "Sketch the horizon and the curve of the shoreline.", "guideImage": "ocean_calm_stage1" },
+    { "title": "Sky", "instruction": "Add a soft wash of colour above the horizon.", "guideImage": "ocean_calm_stage2" },
+    { "title": "Ocean", "instruction": "Paint the sea in broad strokes, following the curved waves.", "guideImage": "ocean_calm_stage3" },
+    { "title": "Details", "instruction": "Add the sun and a few light strokes along the water.", "guideImage": "ocean_calm_stage4" }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "mountain_sunrise",
+  "name": "Mountain Sunrise",
+  "label": "Landscape · Soft morning colours",
+  "category": "painting",
+  "order": 1,
+  "finalImage": "mountain_sunrise_final",
+  "stages": [
+    { "title": "Outline", "instruction": "Lightly sketch the mountain shapes on your canvas.", "guideImage": "mountain_sunrise_stage1" },
+    { "title": "Sky", "instruction": "Paint the sky around the sun using soft, warm colours.", "guideImage": "mountain_sunrise_stage2" },
+    { "title": "Mountains", "instruction": "Fill the mountain shapes, starting with the distant ridge.", "guideImage": "mountain_sunrise_stage3" },
+    { "title": "Details", "instruction": "Add the sun, trees and any finishing touches.", "guideImage": "mountain_sunrise_stage4" }
+  ]
+}

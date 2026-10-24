@@ -1,0 +1,11 @@
+{
+  "id": "one_line_drawing",
+  "name": "One-Line Drawing",
+  "label": "Warm-up · Follow a single line",
+  "category": "warmup",
+  "order": 3,
+  "finalImage": "one_line_drawing_final",
+  "stages": [
+    { "title": "Follow the line", "instruction": "Follow the whole drawing without lifting your brush. Go slowly; small wobbles are part of the style.", "guideImage": "one_line_drawing_stage1" }
+  ]
+}

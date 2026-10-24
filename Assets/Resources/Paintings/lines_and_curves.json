@@ -1,0 +1,14 @@
+{
+  "id": "lines_and_curves",
+  "name": "Lines & Curves",
+  "label": "Warm-up · Build a steady hand",
+  "category": "warmup",
+  "order": 1,
+  "finalImage": "lines_and_curves_final",
+  "stages": [
+    { "title": "Straight lines", "instruction": "Pull slow, straight lines along the guide. Move from your elbow, not your wrist.", "guideImage": "lines_and_curves_stage1" },
+    { "title": "Waves", "instruction": "Follow each wave in one smooth movement, without stopping halfway.", "guideImage": "lines_and_curves_stage2" },
+    { "title": "Circles", "instruction": "Trace each circle in a single stroke. Start small, then go bigger.", "guideImage": "lines_and_curves_stage3" },
+    { "title": "Spiral", "instruction": "Start at the centre and spiral outwards, keeping the gaps even.", "guideImage": "lines_and_curves_stage4" }
+  ]
+}

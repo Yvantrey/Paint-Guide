@@ -1,0 +1,14 @@
+{
+  "id": "simple_shapes",
+  "name": "Simple Shapes",
+  "label": "Warm-up · Shapes you'll use everywhere",
+  "category": "warmup",
+  "order": 2,
+  "finalImage": "simple_shapes_final",
+  "stages": [
+    { "title": "Square", "instruction": "Trace the square. Pause at each corner before turning.", "guideImage": "simple_shapes_stage1" },
+    { "title": "Triangle", "instruction": "Trace the triangle, keeping each side straight.", "guideImage": "simple_shapes_stage2" },
+    { "title": "Leaf", "instruction": "Draw the leaf in two curves that meet at the tip.", "guideImage": "simple_shapes_stage3" },
+    { "title": "Cup", "instruction": "Combine what you've practised: an oval, two sides and a handle.", "guideImage": "simple_shapes_stage4" }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "little_sunflower",
+  "name": "Little Sunflower",
+  "label": "Floral · Bold shapes",
+  "category": "painting",
+  "order": 3,
+  "finalImage": "little_sunflower_final",
+  "stages": [
+    { "title": "Outline", "instruction": "Sketch the flower centre, petals and stem.", "guideImage": "little_sunflower_stage1" },
+    { "title": "Background", "instruction": "Add a light background around the flower.", "guideImage": "little_sunflower_stage2" },
+    { "title": "Petals", "instruction": "Paint the petals, leaving the centre for the final stage.", "guideImage": "little_sunflower_stage3" },
+    { "title": "Details", "instruction": "Fill the centre, stem and leaves. Add your finishing touches.", "guideImage": "little_sunflower_stage4" }
+  ]
+}
