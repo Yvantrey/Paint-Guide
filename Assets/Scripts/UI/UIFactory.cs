@@ -182,7 +182,7 @@ public static class UIFactory
                 break;
             case ButtonStyle.Secondary:
                 bg.color = UITheme.Card;
-                AddBorder(bg, UITheme.Line);
+                AddBorder(bg, UITheme.ButtonBorder, 1.2f);
                 ink = UITheme.Ink;
                 break;
             default:
@@ -235,6 +235,23 @@ public static class UIFactory
         button.onClick.AddListener(() => onClick?.Invoke());
         Size(bg, size, size);
         return button;
+    }
+
+    // A soft drop shadow under a paper card.
+    public static Shadow AddShadow(Graphic graphic)
+    {
+        var shadow = graphic.gameObject.AddComponent<Shadow>();
+        shadow.effectColor = UITheme.ShadowColour;
+        shadow.effectDistance = new Vector2(0f, -3f);
+        return shadow;
+    }
+
+    // A paper card: rounded, paper-coloured, with a soft shadow.
+    public static Image Card(string name, Transform parent, bool blocksTouches = false)
+    {
+        var card = Panel(name, parent, UITheme.Card, true, blocksTouches);
+        AddShadow(card);
+        return card;
     }
 
     // UnityEngine.UI.Outline draws offset copies of the shape, which reads as a thin border.

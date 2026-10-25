@@ -19,4 +19,7 @@ public static class Icons
     public const string Settings = "";
     public const string Info = "";
     public const string Recenter = "";
+    public const string Leaf = "";
+    public const string Plant = "";
+    public const string Image = ""; // image-square
 }

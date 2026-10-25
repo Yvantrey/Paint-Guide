@@ -16,7 +16,7 @@ PlayerSettings:
   productName: RUGA
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
-  m_SplashScreenBackgroundColor: {r: 0.078431375, g: 0.09803922, b: 0.09411765, a: 1}
+  m_SplashScreenBackgroundColor: {r: 0.9529412, g: 0.9254902, b: 0.8784314, a: 1}
   m_ShowUnitySplashScreen: 1
   m_ShowUnitySplashLogo: 0
   m_SplashScreenOverlayOpacity: 0

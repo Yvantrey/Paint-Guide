@@ -21,12 +21,13 @@ public static class RugaProjectSetup
     const string PrefabsFolder = "Assets/Prefabs";
     const string TitleFontPath = "Assets/UI/Fonts/CopperplateCC-Bold.ttf";
     const string IconFontPath = "Assets/UI/Icons/Phosphor.ttf";
+    const string BodyFontPath = "Assets/UI/Fonts/Alegreya.ttf";
     const string AppIconPath = "Assets/UI/AppIcon/ruga_icon.png";
     const string AppIconBackgroundPath = "Assets/UI/AppIcon/ruga_icon_background.png";
     const string SplashLogoPath = "Assets/UI/AppIcon/ruga_splash.png";
 
-    // RUGA accent (pale green) from the prototype, used for detected surfaces.
-    static readonly Color Accent = new Color32(0xcf, 0xdf, 0xa1, 0xff);
+    // RUGA accent, used for detected surfaces in the AR view.
+    static readonly Color Accent = new Color32(0xc4, 0x64, 0x3f, 0xff); // terracotta
 
     [MenuItem("RUGA/Setup/Milestone 1")]
     static void SetupMilestone1()
@@ -200,7 +201,8 @@ public static class RugaProjectSetup
         var ui = GetOrAdd<UIManager>(managers);
         var titleFont = GetOrCreateFontAsset(TitleFontPath);
         var iconFont = GetOrCreateFontAsset(IconFontPath);
-        SetReferences(ui, ("titleFont", titleFont), ("iconFont", iconFont),
+        var bodyFont = GetOrCreateFontAsset(BodyFontPath);
+        SetReferences(ui, ("titleFont", titleFont), ("iconFont", iconFont), ("bodyFont", bodyFont),
             ("logo", AssetDatabase.LoadAssetAtPath<Texture2D>(AppIconPath)));
         var app = GetOrAdd<AppController>(managers);
         SetReferences(app, ("ui", ui), ("ar", tracking), ("guide", guide), ("gestures", gestures),
@@ -351,7 +353,7 @@ public static class RugaProjectSetup
 
         PlayerSettings.SplashScreen.show = true;
         PlayerSettings.SplashScreen.showUnityLogo = false;
-        PlayerSettings.SplashScreen.backgroundColor = new Color32(0x14, 0x19, 0x18, 0xff); // RUGA background
+        PlayerSettings.SplashScreen.backgroundColor = new Color32(0xf3, 0xec, 0xe0, 0xff); // RUGA parchment
         PlayerSettings.SplashScreen.overlayOpacity = 0f;
         PlayerSettings.SplashScreen.logos = new[] { PlayerSettings.SplashScreenLogo.Create(2f, logo) };
         Debug.Log("RUGA: Splash screen set to the RUGA logo.");
@@ -379,7 +381,15 @@ public static class RugaProjectSetup
     {
         var existing = AssetDatabase.LoadAssetAtPath<Material>(path);
         if (existing != null)
+        {
+            // Keep the colour in step with the theme.
+            if (existing.GetColor("_BaseColor") != color)
+            {
+                existing.SetColor("_BaseColor", color);
+                EditorUtility.SetDirty(existing);
+            }
             return existing;
+        }
 
         var mat = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
         mat.SetColor("_BaseColor", color);

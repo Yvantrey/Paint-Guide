@@ -61,9 +61,9 @@ public static class GuideTextures
     {
         if (finalPlaceholder == null)
         {
-            var px = NewCanvas(new Color32(0x30, 0x3a, 0x2d, 0xff));
-            DrawBorder(px, 6, new Color32(0xcf, 0xdf, 0xa1, 0xff));
-            FillTriangleUp(px, Width / 2, Height / 2 + 40, 60, new Color32(0x3a, 0x44, 0x3e, 0xff));
+            var px = NewCanvas(new Color32(0xea, 0xdf, 0xcf, 0xff));                                 // parchment
+            DrawBorder(px, 6, new Color32(0xc4, 0x64, 0x3f, 0xff));                                 // terracotta
+            FillTriangleUp(px, Width / 2, Height / 2 + 40, 60, new Color32(0x93, 0xa8, 0x88, 0xff)); // sage
             finalPlaceholder = ToTexture(px, "RUGA Final Placeholder");
         }
         return finalPlaceholder;
