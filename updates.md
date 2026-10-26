@@ -75,3 +75,20 @@ The app shows this list under Settings > Credits & licences.
 - 2026-10-24 First APK built by batch mode (Assets/Scripts/Editor/RugaBuild.cs, menu RUGA > Build > Android APK): Builds/RUGA.apk, 41 MB, arm64, minSdk 29 (Android 10+), targetSdk 36. Unity added android.permission.INTERNET automatically ("Internet Access: Auto"); removed via Assets/Plugins/Android/LauncherManifest.xml (tools:node="remove", Custom Launcher Manifest enabled). Verified with aapt: only CAMERA (+ AndroidX's internal DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION, app-private). Not yet run on a device or in Play mode.
 - 2026-10-25 App icon added: user-supplied image (original kept at Design/ruga_icon_source.jpg). Cropped to the tile interior, art scaled to fit the round-mask safe zone, background gradient extended: Assets/UI/AppIcon/ruga_icon.png + ruga_icon_background.png (1024 px, uncompressed). Set as the Android adaptive icon by RUGA > Setup > Full App. Unity "Engine Diagnostics" data collection turned off (ProjectSettings/UnityConnectSettings.asset). Rebuilt APK: 40.9 MB, 0 errors, permissions CAMERA only.
 - 2026-10-25 Branding: Home badge now shows the RUGA logo (UIManager.logo = ruga_icon.png). Startup splash: Unity logo off, RUGA logo (Assets/UI/AppIcon/ruga_splash.png, Sprite/Single) for 2 s on #141918. APK rebuilt: 41.8 MB, permissions CAMERA only.
+
+## Theme v2: botanical parchment (2026-10-26)
+User supplied four mood mockups (dark-green torn-paper cards; cream paint palette; cream step-by-step guide; cream "Discover your palette"). Followed the light parchment direction (3 of 4, and the step-guide screen matches RUGA's paint panel).
+- Palette (UITheme.cs): parchment #f3ece0, paper #fbf7f0, ink #3a2a20, muted #7d6b5d, line #ddd0bf, button outline #8c6b57, terracotta #c4643f (primary), sage #93a888, ochre #d49a3a.
+- Paper-grain backdrop (generated, tiled), paper cards with soft shadows, outlined brown secondary buttons, terracotta primary buttons.
+- Stage progress drawn as leaves on a stem (done terracotta, current sage, upcoming pale); leaf icon on "Next stage"; sprig next to the RUGA title.
+- Fonts: titles Copperplate CC (kept), body Alegreya (SIL OFL 1.1, google/fonts ofl/alegreya, variable font used at its default Regular weight).
+- AR surface highlight now terracotta; splash background parchment.
+- Kept: AR guide colours cyan / yellow / white (they must stand out on a real canvas).
+- Not adopted from the mockups: bottom tab bar, digital paint palette, colour-adjust sliders (RUGA is a guide for real painting). Possible later addition: per-stage paint swatches ("Gouache swatches") in the JSON.
+
+## Content and Reference mode (2026-10-26)
+- Paintings now have real images: the three prototype artworks (Mountain Sunrise, Ocean Calm, Little Sunflower) rendered from the user's clickable prototype SVG code with Edge headless at 1536 x 2048 (finals in colour; stage guides white on transparent, current stage area filled at 25%). Replace with final hand-made art any time, same file names. Warm-ups still use test patterns until drawn.
+- Per-stage "Paint swatches" (JSON field "swatches": [{name, hex}]), colours taken from the prototype artwork. Shown in the AR paint panel and Reference mode (StageView.cs).
+- Reference mode (AppState.Reference): paint without AR. Stage guide in brown ink over a faint finished painting on a paper "canvas", toggle to the finished painting, swatches, stages, timer, saving and summary as in AR. Entry: catalog "Paint without AR", and the "This phone can't run AR" message.
+- AR paint panel: "Reference" link opens the finished painting full screen.
+- Editor tool: RUGA > Preview Screens renders Home, Catalog, Reference, AR paint panel, Summary and Settings to Builds/Preview.

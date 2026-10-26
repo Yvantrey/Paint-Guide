@@ -558,7 +558,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIManager
   titleFont: {fileID: 11400000, guid: ae9243b609f079044a84563d8ae866ad, type: 2}
-  bodyFont: {fileID: 0}
+  bodyFont: {fileID: 11400000, guid: 8221182a8e4b8254f9633f78468f5356, type: 2}
   iconFont: {fileID: 11400000, guid: b07d85386f4af224589da77d0dd64a67, type: 2}
   logo: {fileID: 2800000, guid: df716fb259ce9084faaaf80504987fc9, type: 3}
 --- !u!114 &1796485413

@@ -29,8 +29,9 @@ public class UIManager : MonoBehaviour
     static readonly (string name, string details, string licenceFile)[] Credits =
     {
         ("Copperplate CC", "Title font by Owen Earl (indestructible type*) for The Cowboy Collective. SIL Open Font License 1.1.", "CopperplateCC-OFL"),
+        ("Alegreya", "Body text font by The Alegreya Project Authors (Huerta Tipográfica). SIL Open Font License 1.1.", "Alegreya-OFL"),
         ("Phosphor Icons", "Icons © 2020-2021 Phosphor Icons. MIT License.", "Phosphor-LICENSE"),
-        ("Liberation Sans", "Body text font, included with TextMeshPro. SIL Open Font License 1.1.", null),
+        ("Liberation Sans", "Fallback font, included with TextMeshPro. SIL Open Font License 1.1.", null),
         ("Artwork", "All paintings and warm-up guides are original artwork made for RUGA.", null)
     };
 
@@ -86,13 +87,24 @@ public class UIManager : MonoBehaviour
     TextMeshProUGUI scanTitle, scanText;
     TMP_InputField widthField, heightField;
     TextMeshProUGUI lockLabel;
-    RectTransform progressRow;
-    TextMeshProUGUI stepLabel, stageTitle, stageInstruction;
+    StageView paintStage;
     Slider opacitySlider;
     TextMeshProUGUI opacityValue;
-    Button outlineToggle, gridToggle, previousButton;
+    Button outlineToggle, gridToggle;
     Button[] paintDots;
-    TextMeshProUGUI nextLabel, nextIcon, hideLabel, hideIcon;
+    TextMeshProUGUI hideLabel, hideIcon;
+
+    // Reference mode (painting without AR)
+    GameObject referenceScreen;
+    TextMeshProUGUI referenceTitle;
+    RawImage referenceFinal, referenceGuide;
+    Button referenceGuideToggle, referenceFinishedToggle;
+    StageView referenceStage;
+
+    // Picture viewer overlay
+    GameObject viewer;
+    TextMeshProUGUI viewerTitle;
+    RawImage viewerImage;
 
     // Overlays
     GameObject toast;
@@ -103,7 +115,7 @@ public class UIManager : MonoBehaviour
     GameObject modalCancel;
     Action modalOkAction, modalCancelAction;
 
-    public bool IsModalOpen => modal != null && modal.activeSelf;
+    public bool IsModalOpen => (modal != null && modal.activeSelf) || (viewer != null && viewer.activeSelf);
 
     public void Build()
     {
@@ -126,6 +138,8 @@ public class UIManager : MonoBehaviour
 
         // Opaque background for the non-AR screens. The workspace leaves it off so the camera shows.
         var backdropImage = UIFactory.Panel("Backdrop", canvasRect, UITheme.Background, false, true);
+        backdropImage.sprite = UITheme.Paper;
+        backdropImage.type = Image.Type.Tiled;
         UIFactory.Stretch(backdropImage.rectTransform);
         backdrop = backdropImage.gameObject;
 
@@ -137,7 +151,9 @@ public class UIManager : MonoBehaviour
         BuildSettings(safe);
         BuildCredits(safe);
         BuildSummary(safe);
+        BuildReference(safe);
         BuildWorkspace(safe);
+        BuildViewer(canvasRect);
         BuildToast(canvasRect);
         BuildModal(canvasRect);
     }
@@ -244,29 +260,37 @@ public class UIManager : MonoBehaviour
 
     public void ShowPaintPanel() => ShowSheetPanel(paintPanel);
 
-    public void ShowStage(Painting painting, int index)
-    {
-        int count = painting.Stages.Count;
-        var stage = painting.Stages[index];
-        stepLabel.text = $"STAGE {index + 1} OF {count}";
-        stageTitle.text = stage.Title;
-        stageInstruction.text = stage.Instruction;
-        previousButton.interactable = index > 0;
-        bool last = index == count - 1;
-        nextLabel.text = last ? "Finish" : "Next stage";
-        UIFactory.SetIcon(nextIcon, last ? Icons.Check : Icons.ArrowRight);
+    public void ShowStage(Painting painting, int index) => paintStage.Show(painting, index);
 
-        if (progressRow.childCount != count)
-        {
-            UIFactory.Clear(progressRow);
-            for (int i = 0; i < count; i++)
-            {
-                var bar = UIFactory.Panel("Step", progressRow, UITheme.Line, false);
-                UIFactory.Size(bar, -1f, 3f, 1f);
-            }
-        }
-        for (int i = 0; i < progressRow.childCount; i++)
-            progressRow.GetChild(i).GetComponent<Image>().color = i <= index ? UITheme.Accent : UITheme.Line;
+    // ---------- Reference mode ----------
+
+    public void ShowReference(Painting painting)
+    {
+        referenceTitle.text = painting.Name;
+        referenceFinal.texture = painting.FinalImage;
+        ShowScreen(referenceScreen, true);
+    }
+
+    // The canvas card shows either this stage's guide (in brown ink over a faint finished painting)
+    // or the finished painting on its own.
+    public void ShowReferenceStage(Painting painting, int index, bool showFinished)
+    {
+        referenceStage.Show(painting, index);
+        referenceGuide.texture = painting.Stages[index].GuideImage;
+        referenceGuide.color = showFinished ? Color.clear : UITheme.Ink;
+        referenceFinal.color = showFinished ? Color.white : new Color(1f, 1f, 1f, 0.22f);
+        SetToggle(referenceGuideToggle, !showFinished);
+        SetToggle(referenceFinishedToggle, showFinished);
+    }
+
+    // ---------- Picture viewer ----------
+
+    public void ShowViewer(string title, Texture texture)
+    {
+        viewerTitle.text = title;
+        viewerImage.texture = texture;
+        viewer.SetActive(true);
+        viewer.transform.SetAsLastSibling();
     }
 
     public void SetGuideControls(float opacity, GuideColour colour, bool outline, bool grid, bool hidden)
@@ -323,6 +347,12 @@ public class UIManager : MonoBehaviour
     // Closes the pop-up as if "cancel" was chosen (used by the phone's back button).
     public void CloseModal()
     {
+        if (viewer.activeSelf)
+        {
+            viewer.SetActive(false);
+            return;
+        }
+
         var action = modalCancelAction;
         HideModal();
         action?.Invoke();
@@ -372,6 +402,7 @@ public class UIManager : MonoBehaviour
             UIFactory.Stretch(UIFactory.Text(mark.transform, "R", 20f, UITheme.Deep, true, FontStyles.Normal, TextAlignmentOptions.Center).rectTransform);
         }
         UIFactory.Text(brand, "RUGA", 18f, UITheme.Ink, true);
+        UIFactory.Icon(brand, Icons.Plant, 18f, UITheme.Sage);
         UIFactory.Spacer(brand, -1f, 1f);
         UIFactory.RoundButton(brand, Icons.Settings, "•••", () => Raise(UIAction.OpenSettings), 40f);
 
@@ -380,7 +411,7 @@ public class UIManager : MonoBehaviour
         UIFactory.Text(content, "Place a guide on your canvas.\nMake the next brushstroke your own.", 14f, UITheme.Muted);
 
         heroImage = UIFactory.Picture(content, null, 235f);
-        var pill = UIFactory.Panel("Label", heroImage.transform.parent, new Color(0.09f, 0.16f, 0.11f, 0.86f));
+        var pill = UIFactory.Panel("Label", heroImage.transform.parent, new Color(UITheme.Card.r, UITheme.Card.g, UITheme.Card.b, 0.92f));
         pill.rectTransform.anchorMin = pill.rectTransform.anchorMax = Vector2.zero;
         pill.rectTransform.pivot = Vector2.zero;
         pill.rectTransform.anchoredPosition = new Vector2(13f, 13f);
@@ -404,7 +435,7 @@ public class UIManager : MonoBehaviour
 
     void AddRecentRow(SessionRecord record)
     {
-        var card = UIFactory.Panel("Session", recentList, UITheme.Card);
+        var card = UIFactory.Card("Session", recentList);
         UIFactory.Vertical(card, 14, 10, 2);
 
         var top = UIFactory.Row(card.transform, 8);
@@ -440,6 +471,8 @@ public class UIManager : MonoBehaviour
 
         var use = UIFactory.Button(content, "Use this painting", ButtonStyle.Primary, () => Raise(UIAction.UsePainting), UITheme.ButtonHeight, Icons.ArrowRight, true);
         useButtonLabel = UIFactory.LabelOf(use);
+        UIFactory.Button(content, "Paint without AR", ButtonStyle.Secondary, () => Raise(UIAction.UseReferenceMode), UITheme.SmallButtonHeight, Icons.Image);
+        UIFactory.Text(content, "Without AR, RUGA shows each stage on screen so you can copy it onto your canvas.", 12f, UITheme.Muted, false, FontStyles.Normal, TextAlignmentOptions.Center);
     }
 
     void AddCatalogSection(string title, IEnumerable<Painting> paintings)
@@ -451,7 +484,7 @@ public class UIManager : MonoBehaviour
         UIFactory.Micro(catalogList, title);
         foreach (var painting in list)
         {
-            var card = UIFactory.Panel("Card", catalogList, UITheme.Card, true, true);
+            var card = UIFactory.Card("Card", catalogList, true);
             var button = card.gameObject.AddComponent<Button>();
             button.targetGraphic = card;
             var p = painting;
@@ -500,7 +533,7 @@ public class UIManager : MonoBehaviour
         UIFactory.Text(content, "Used each time you start a painting. You can still change both while you paint.", 12f, UITheme.Muted);
 
         UIFactory.Spacer(content, 8f);
-        var privacy = UIFactory.Panel("Privacy", content, UITheme.Card);
+        var privacy = UIFactory.Card("Privacy", content);
         UIFactory.Vertical(privacy, 14, 12, 4);
         UIFactory.Text(privacy.transform, "Privacy", 14f, UITheme.Ink, false, FontStyles.Bold);
         UIFactory.Text(privacy.transform, "RUGA works offline. The camera only shows your canvas on screen; nothing is recorded, saved or shared.", 12f, UITheme.Muted);
@@ -524,7 +557,7 @@ public class UIManager : MonoBehaviour
 
         foreach (var (name, details, licenceFile) in Credits)
         {
-            var card = UIFactory.Panel("Credit", content, UITheme.Card);
+            var card = UIFactory.Card("Credit", content);
             UIFactory.Vertical(card, 14, 12, 6);
             UIFactory.Text(card.transform, name, 14f, UITheme.Ink, false, FontStyles.Bold);
             UIFactory.Text(card.transform, details, 12f, UITheme.Muted);
@@ -554,7 +587,7 @@ public class UIManager : MonoBehaviour
         summaryName = UIFactory.Text(content, "", 13f, UITheme.Muted);
         summaryPicture = UIFactory.Picture(content, null, 170f);
 
-        var metric = UIFactory.Panel("Total", content, UITheme.Card);
+        var metric = UIFactory.Card("Total", content);
         var metricLayout = UIFactory.Horizontal(metric, 8);
         metricLayout.padding = new RectOffset(14, 14, 14, 14);
         UIFactory.Size(UIFactory.Text(metric.transform, "Total time", 13f, UITheme.Muted), -1f, -1f, 1f);
@@ -567,6 +600,94 @@ public class UIManager : MonoBehaviour
         UIFactory.Button(content, "Back to home", ButtonStyle.Link, () => Raise(UIAction.GoHome), 40f);
     }
 
+    // Reference mode: paint without AR. The stage guide is shown on a paper "canvas" on screen,
+    // with the finished painting a tap away, and the same stages, swatches and timer as in AR.
+    void BuildReference(Transform parent)
+    {
+        var content = UIFactory.ScrollScreen("Reference", parent, out referenceScreen);
+        screens.Add(referenceScreen);
+
+        var top = UIFactory.Row(content, 12);
+        UIFactory.RoundButton(top, Icons.ArrowLeft, "<", () => Raise(UIAction.Back));
+        referenceTitle = UIFactory.Text(top, "", 17f, UITheme.Ink, false, FontStyles.Bold);
+        UIFactory.Size(referenceTitle, -1f, -1f, 1f);
+        UIFactory.Icon(top, Icons.Plant, 18f, UITheme.Sage);
+
+        var picture = FittedCanvas(content, 400f);
+        referenceFinal = Layer(picture);
+        referenceGuide = Layer(picture);
+
+        var views = UIFactory.Row(content, 8);
+        referenceGuideToggle = UIFactory.Button(views, "Stage guide", ButtonStyle.Secondary, () => Raise(UIAction.ShowGuideView), 40f, Icons.Outline);
+        UIFactory.Size(referenceGuideToggle, -1f, -1f, 1f);
+        referenceFinishedToggle = UIFactory.Button(views, "Finished painting", ButtonStyle.Secondary, () => Raise(UIAction.ShowFinishedView), 40f, Icons.Image);
+        UIFactory.Size(referenceFinishedToggle, -1f, -1f, 1f);
+        UIFactory.LabelOf(referenceGuideToggle).fontSize = 13f;
+        UIFactory.LabelOf(referenceFinishedToggle).fontSize = 13f;
+
+        var stageCard = UIFactory.Card("Stage", content);
+        UIFactory.Vertical(stageCard, 18, 16, 10);
+        referenceStage = StageView.BuildHeader(stageCard.transform);
+        referenceStage.BuildSwatches(stageCard.transform);
+        referenceStage.BuildNav(stageCard.transform, Raise);
+
+        UIFactory.Text(content, "Copy this stage onto your canvas, then tap Next stage. A phone stand next to the canvas keeps both hands free.",
+            12f, UITheme.Muted, false, FontStyles.Normal, TextAlignmentOptions.Center);
+    }
+
+    // A paper card with a white "canvas" inside that shows pictures whole, in their 3:4 shape.
+    static RectTransform FittedCanvas(Transform parent, float height)
+    {
+        var card = UIFactory.Card("Canvas", parent);
+        UIFactory.Size(card, -1f, height);
+        var area = UIFactory.Stretch(UIFactory.Rect("Area", card.transform), 14f, 14f, 14f, 14f);
+        return FittedPicture(area);
+    }
+
+    static RectTransform FittedPicture(RectTransform area)
+    {
+        var picture = UIFactory.Rect("Picture", area);
+        var fitter = picture.gameObject.AddComponent<AspectRatioFitter>();
+        fitter.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
+        fitter.aspectRatio = 0.75f;
+        var paper = picture.gameObject.AddComponent<Image>();
+        paper.color = new Color32(0xff, 0xfd, 0xf8, 0xff);
+        paper.raycastTarget = false;
+        UIFactory.AddBorder(paper, UITheme.Line, 1f);
+        return picture;
+    }
+
+    static RawImage Layer(RectTransform picture)
+    {
+        var image = UIFactory.Rect("Layer", picture).gameObject.AddComponent<RawImage>();
+        UIFactory.Stretch(image.rectTransform);
+        image.raycastTarget = false;
+        return image;
+    }
+
+    // Full-screen look at the finished painting, opened from the AR paint panel.
+    void BuildViewer(Transform canvas)
+    {
+        var dim = UIFactory.Panel("Viewer", canvas, UITheme.Overlay, false, true);
+        UIFactory.Stretch(dim.rectTransform);
+        viewer = dim.gameObject;
+
+        var card = UIFactory.Card("Card", dim.transform, true);
+        UIFactory.Stretch(card.rectTransform, 18f, 70f, 18f, 70f);
+        UIFactory.Vertical(card, 18, 18, 12);
+
+        var header = UIFactory.Row(card.transform, 6);
+        UIFactory.Icon(header, Icons.Image, 18f, UITheme.Accent);
+        viewerTitle = UIFactory.Text(header, "", 19f, UITheme.Ink, true);
+
+        var area = UIFactory.Rect("Area", card.transform);
+        area.gameObject.AddComponent<LayoutElement>().flexibleHeight = 1f;
+        viewerImage = Layer(FittedPicture(area));
+
+        UIFactory.Button(card.transform, "Back to painting", ButtonStyle.Primary, () => viewer.SetActive(false), UITheme.SmallButtonHeight, Icons.ArrowLeft);
+        viewer.SetActive(false);
+    }
+
     void BuildWorkspace(Transform parent)
     {
         var root = UIFactory.Stretch(UIFactory.Rect("Workspace", parent));
@@ -575,6 +696,7 @@ public class UIManager : MonoBehaviour
 
         // Top bar
         var top = UIFactory.Panel("TopBar", root, UITheme.PanelBackground, true, true);
+        UIFactory.AddShadow(top);
         var topRect = top.rectTransform;
         topRect.anchorMin = new Vector2(0f, 1f);
         topRect.anchorMax = new Vector2(1f, 1f);
@@ -592,7 +714,7 @@ public class UIManager : MonoBehaviour
         modeTag = UIFactory.Text(tag.transform, "", 11f, UITheme.Accent);
 
         // Tracking-lost warning, under the top bar
-        var warning = UIFactory.Panel("TrackingWarning", root, UITheme.Card);
+        var warning = UIFactory.Card("TrackingWarning", root);
         UIFactory.AddBorder(warning, UITheme.Warning, 1.5f);
         var warningRect = warning.rectTransform;
         warningRect.anchorMin = new Vector2(0f, 1f);
@@ -610,6 +732,7 @@ public class UIManager : MonoBehaviour
 
         // Bottom sheet holding the Scan, Align and Paint panels
         var sheet = UIFactory.Panel("BottomSheet", root, UITheme.PanelBackground, true, true);
+        UIFactory.AddShadow(sheet);
         var sheetRect = sheet.rectTransform;
         sheetRect.anchorMin = new Vector2(0f, 0f);
         sheetRect.anchorMax = new Vector2(1f, 0f);
@@ -687,11 +810,8 @@ public class UIManager : MonoBehaviour
         var panel = UIFactory.Column(sheet, 9, "PaintPanel");
         paintPanel = panel.gameObject;
 
-        progressRow = UIFactory.Row(panel, 5);
-        UIFactory.Size(progressRow, -1f, 3f);
-        stepLabel = UIFactory.Micro(panel, "");
-        stageTitle = UIFactory.Text(panel, "", 19f, UITheme.Ink, true);
-        stageInstruction = UIFactory.Text(panel, "", 13f, UITheme.Muted);
+        paintStage = StageView.BuildHeader(panel);
+        paintStage.BuildSwatches(panel);
 
         var opacityRow = UIFactory.Row(panel, 8);
         UIFactory.Size(UIFactory.Text(opacityRow, "Guide opacity", 12f, UITheme.Ink), -1f, -1f, 1f);
@@ -708,19 +828,14 @@ public class UIManager : MonoBehaviour
         UIFactory.Spacer(toggles, -1f, 1f);
         paintDots = BuildColourDots(toggles, 32f);
 
-        var nav = UIFactory.Row(panel, 8);
-        previousButton = UIFactory.Button(nav, "Previous", ButtonStyle.Secondary, () => Raise(UIAction.PreviousStage), UITheme.SmallButtonHeight, Icons.ArrowLeft);
-        UIFactory.Size(previousButton, -1f, -1f, 1f);
-        var next = UIFactory.Button(nav, "Next stage", ButtonStyle.Primary, () => Raise(UIAction.NextStage), UITheme.SmallButtonHeight, Icons.ArrowRight, true);
-        UIFactory.Size(next, -1f, -1f, 1f);
-        nextLabel = UIFactory.LabelOf(next);
-        nextIcon = UIFactory.IconOf(next);
+        paintStage.BuildNav(panel, Raise);
 
-        var links = UIFactory.Row(panel, 4);
+        var links = UIFactory.Row(panel, 2);
         links.GetComponent<HorizontalLayoutGroup>().childAlignment = TextAnchor.MiddleCenter;
-        UIFactory.Size(UIFactory.Button(links, "Unlock & realign", ButtonStyle.Link, () => Raise(UIAction.Unlock), 40f, Icons.Unlock), 165f, 40f);
+        UIFactory.Size(UIFactory.Button(links, "Reference", ButtonStyle.Link, () => Raise(UIAction.ViewReference), 40f, Icons.Image), 110f, 40f);
+        UIFactory.Size(UIFactory.Button(links, "Unlock", ButtonStyle.Link, () => Raise(UIAction.Unlock), 40f, Icons.Unlock), 95f, 40f);
         var hide = UIFactory.Button(links, "Hide guide", ButtonStyle.Link, () => Raise(UIAction.ToggleHideGuide), 40f, Icons.EyeSlash);
-        UIFactory.Size(hide, 135f, 40f);
+        UIFactory.Size(hide, 125f, 40f);
         hideLabel = UIFactory.LabelOf(hide);
         hideIcon = UIFactory.IconOf(hide);
     }
@@ -735,7 +850,7 @@ public class UIManager : MonoBehaviour
 
     static void SetToggle(Button button, bool on)
     {
-        button.GetComponent<Outline>().effectColor = on ? UITheme.Accent : UITheme.Line;
+        button.GetComponent<Outline>().effectColor = on ? UITheme.Accent : UITheme.ButtonBorder;
         foreach (var text in button.GetComponentsInChildren<TextMeshProUGUI>(true))
             text.color = on ? UITheme.Accent : UITheme.Ink;
     }
@@ -747,7 +862,8 @@ public class UIManager : MonoBehaviour
         {
             var colour = Colours[i];
             dots[i] = UIFactory.ColourDot(row, GuideColours.ToColor(colour), () => OnColourChanged?.Invoke(colour), size);
-            UIFactory.AddBorder(dots[i].targetGraphic, Color.white, 2.5f).enabled = false;
+            UIFactory.AddShadow(dots[i].targetGraphic); // gives the white dot an edge on paper
+            UIFactory.AddBorder(dots[i].targetGraphic, UITheme.Ink, 2.5f).enabled = false;
         }
 
         // Each set of dots shows its own selection straight away.
@@ -788,8 +904,7 @@ public class UIManager : MonoBehaviour
         UIFactory.Stretch(dim.rectTransform);
         modal = dim.gameObject;
 
-        var card = UIFactory.Panel("Card", dim.transform, new Color32(0x24, 0x2d, 0x26, 0xff), true, true);
-        UIFactory.AddBorder(card, new Color32(0x54, 0x66, 0x4a, 0xff));
+        var card = UIFactory.Card("Card", dim.transform, true);
         var rect = card.rectTransform;
         rect.anchorMin = new Vector2(0f, 0.5f);
         rect.anchorMax = new Vector2(1f, 0.5f);
@@ -799,7 +914,7 @@ public class UIManager : MonoBehaviour
         card.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
         modalTitle = UIFactory.Text(card.transform, "", 21f, UITheme.Ink, true);
-        modalBody = UIFactory.Text(card.transform, "", 14f, new Color32(0xc2, 0xcc, 0xbe, 0xff));
+        modalBody = UIFactory.Text(card.transform, "", 14f, UITheme.Muted);
         modalBody.richText = true;
         UIFactory.Spacer(card.transform, 4f);
 

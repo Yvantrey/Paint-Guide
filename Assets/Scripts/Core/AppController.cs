@@ -40,6 +40,7 @@ public class AppController : MonoBehaviour
         machine.Add(new PlacingState(context));
         machine.Add(new AligningState(context));
         machine.Add(new PaintingState(context));
+        machine.Add(new ReferenceState(context));
         machine.Add(new SummaryState(context));
 
         // UI and gestures go to whichever state is active.

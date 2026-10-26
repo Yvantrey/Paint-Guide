@@ -10,6 +10,7 @@ public enum AppState
     Placing,
     Aligning,
     Painting,
+    Reference,
     Summary
 }
 

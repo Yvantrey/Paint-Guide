@@ -135,6 +135,17 @@ public class CatalogState : AppStateBase
         Ctx.UI.SetCatalogSelection(painting);
     }
 
+    // Each new painting starts from the saved defaults.
+    void ApplyDefaults()
+    {
+        var prefs = Ctx.Data.Preferences;
+        Ctx.Guide.SetColour(prefs.GuideColour);
+        Ctx.Guide.SetOpacity(prefs.DefaultOpacity);
+        Ctx.Guide.SetOutlineVisible(true);
+        Ctx.Guide.SetGridVisible(false);
+        Ctx.Guide.SetHidden(false);
+    }
+
     public override void OnUIAction(UIAction action)
     {
         switch (action)
@@ -142,14 +153,14 @@ public class CatalogState : AppStateBase
             case UIAction.UsePainting:
                 if (Ctx.SelectedPainting == null)
                     return;
-                // Each new painting starts from the saved defaults.
-                var prefs = Ctx.Data.Preferences;
-                Ctx.Guide.SetColour(prefs.GuideColour);
-                Ctx.Guide.SetOpacity(prefs.DefaultOpacity);
-                Ctx.Guide.SetOutlineVisible(true);
-                Ctx.Guide.SetGridVisible(false);
-                Ctx.Guide.SetHidden(false);
+                ApplyDefaults();
                 Go(AppState.Scanning);
+                break;
+            case UIAction.UseReferenceMode:
+                if (Ctx.SelectedPainting == null)
+                    return;
+                ApplyDefaults();
+                Go(AppState.Reference);
                 break;
             case UIAction.Back:
                 Go(AppState.Home);
@@ -214,8 +225,9 @@ public class ScanningState : AppStateBase
                 break;
             case ARReadiness.Unsupported:
                 Ctx.UI.ShowModal("This phone can’t run AR",
-                    "RUGA needs Google’s ARCore, which isn’t available on this phone. You can still look through the paintings, but placing a guide needs an ARCore-supported phone.",
-                    "Back to home", () => Go(AppState.Home), null, () => Go(AppState.Home));
+                    "Placing the guide on your canvas needs Google’s ARCore, which isn’t available on this phone.\n\n" +
+                    "You can still paint with RUGA: <b>Reference mode</b> shows each stage on screen, with paint swatches, so you can copy it onto your canvas.",
+                    "Use Reference mode", () => Go(AppState.Reference), "Back to home", () => Go(AppState.Home));
                 break;
             case ARReadiness.InstallFailed:
                 Ctx.UI.ShowModal("One more app is needed",
@@ -437,6 +449,9 @@ public class PaintingState : AppStateBase
             case UIAction.Unlock:
                 Go(AppState.Aligning);
                 break;
+            case UIAction.ViewReference:
+                Ctx.UI.ShowViewer(Ctx.Session.Painting.Name, Ctx.Session.Painting.FinalImage);
+                break;
             case UIAction.ToggleHideGuide:
                 Ctx.Guide.SetHidden(!Ctx.Guide.Hidden);
                 RefreshControls();
@@ -448,6 +463,71 @@ public class PaintingState : AppStateBase
             case UIAction.ToggleGrid:
                 Ctx.Guide.SetGridVisible(!Ctx.Guide.GridVisible);
                 RefreshControls();
+                break;
+            case UIAction.Back:
+                ConfirmLeaveWorkspace();
+                break;
+        }
+    }
+}
+
+// Painting without AR: for phones without ARCore, or when the user prefers it.
+// Each stage is shown on screen to copy onto the real canvas; stages, timing and saving work as in AR.
+public class ReferenceState : AppStateBase
+{
+    bool showFinished;
+
+    public ReferenceState(AppContext context) : base(context) { }
+    public override AppState Id => AppState.Reference;
+
+    public override void Enter()
+    {
+        Ctx.AR.StopAR();
+        Ctx.Guide.Clear();
+        Screen.sleepTimeout = SleepTimeout.NeverSleep;
+        showFinished = false;
+
+        Ctx.Session.OnStageChanged += ShowStage;
+        Ctx.Session.OnSessionCompleted += Completed;
+        Ctx.UI.ShowReference(Ctx.SelectedPainting);
+
+        if (Ctx.Session.IsActive && Ctx.Session.Painting == Ctx.SelectedPainting)
+            ShowStage(Ctx.Session.StageIndex);
+        else
+            Ctx.Session.Begin(Ctx.SelectedPainting); // raises OnStageChanged for stage 1
+
+        Ctx.Session.StartTimer();
+    }
+
+    public override void Exit()
+    {
+        Ctx.Session.OnStageChanged -= ShowStage;
+        Ctx.Session.OnSessionCompleted -= Completed;
+        Ctx.Session.PauseTimer();
+    }
+
+    void ShowStage(int index) => Ctx.UI.ShowReferenceStage(Ctx.Session.Painting, index, showFinished);
+
+    void Completed(SessionRecord record)
+    {
+        Ctx.LastRecord = record;
+        Go(AppState.Summary);
+    }
+
+    public override void OnUIAction(UIAction action)
+    {
+        switch (action)
+        {
+            case UIAction.NextStage:
+                Ctx.Session.Next();
+                break;
+            case UIAction.PreviousStage:
+                Ctx.Session.Previous();
+                break;
+            case UIAction.ShowGuideView:
+            case UIAction.ShowFinishedView:
+                showFinished = action == UIAction.ShowFinishedView;
+                ShowStage(Ctx.Session.StageIndex);
                 break;
             case UIAction.Back:
                 ConfirmLeaveWorkspace();
