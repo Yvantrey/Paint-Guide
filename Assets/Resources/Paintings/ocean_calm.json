@@ -6,9 +6,13 @@
   "order": 2,
   "finalImage": "ocean_calm_final",
   "stages": [
-    { "title": "Outline", "instruction": "Sketch the horizon and the curve of the shoreline.", "guideImage": "ocean_calm_stage1" },
-    { "title": "Sky", "instruction": "Add a soft wash of colour above the horizon.", "guideImage": "ocean_calm_stage2" },
-    { "title": "Ocean", "instruction": "Paint the sea in broad strokes, following the curved waves.", "guideImage": "ocean_calm_stage3" },
-    { "title": "Details", "instruction": "Add the sun and a few light strokes along the water.", "guideImage": "ocean_calm_stage4" }
+    { "title": "Outline", "instruction": "Sketch the horizon and the curve of the shoreline.", "guideImage": "ocean_calm_stage1",
+      "swatches": [ { "name": "Soft Pencil", "hex": "#8f877d" } ] },
+    { "title": "Sky", "instruction": "Add a soft wash of colour above the horizon.", "guideImage": "ocean_calm_stage2",
+      "swatches": [ { "name": "Dune Sky", "hex": "#d5c1a2" }, { "name": "Pale Linen", "hex": "#d7d3b9" } ] },
+    { "title": "Ocean", "instruction": "Paint the sea in broad strokes, following the curved waves.", "guideImage": "ocean_calm_stage3",
+      "swatches": [ { "name": "Sea Teal", "hex": "#537b80" }, { "name": "Seafoam", "hex": "#86a6a0" } ] },
+    { "title": "Details", "instruction": "Add the sun and a few light strokes along the water.", "guideImage": "ocean_calm_stage4",
+      "swatches": [ { "name": "Low Sun", "hex": "#f6deb2" }, { "name": "Shore Sand", "hex": "#dcc9a4" }, { "name": "Glint", "hex": "#c2d1ba" } ] }
   ]
 }

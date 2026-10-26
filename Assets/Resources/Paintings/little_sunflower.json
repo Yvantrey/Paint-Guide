@@ -6,9 +6,13 @@
   "order": 3,
   "finalImage": "little_sunflower_final",
   "stages": [
-    { "title": "Outline", "instruction": "Sketch the flower centre, petals and stem.", "guideImage": "little_sunflower_stage1" },
-    { "title": "Background", "instruction": "Add a light background around the flower.", "guideImage": "little_sunflower_stage2" },
-    { "title": "Petals", "instruction": "Paint the petals, leaving the centre for the final stage.", "guideImage": "little_sunflower_stage3" },
-    { "title": "Details", "instruction": "Fill the centre, stem and leaves. Add your finishing touches.", "guideImage": "little_sunflower_stage4" }
+    { "title": "Outline", "instruction": "Sketch the flower centre, petals and stem.", "guideImage": "little_sunflower_stage1",
+      "swatches": [ { "name": "Soft Pencil", "hex": "#8f877d" } ] },
+    { "title": "Background", "instruction": "Add a light background around the flower.", "guideImage": "little_sunflower_stage2",
+      "swatches": [ { "name": "Sage Mist", "hex": "#c9cbb3" } ] },
+    { "title": "Petals", "instruction": "Paint the petals, leaving the centre for the final stage.", "guideImage": "little_sunflower_stage3",
+      "swatches": [ { "name": "Golden Ochre", "hex": "#d4a44c" }, { "name": "Honey", "hex": "#dfb85b" } ] },
+    { "title": "Details", "instruction": "Fill the centre, stem and leaves. Add your finishing touches.", "guideImage": "little_sunflower_stage4",
+      "swatches": [ { "name": "Seed Brown", "hex": "#685037" }, { "name": "Dark Centre", "hex": "#4c4231" }, { "name": "Stem Green", "hex": "#526b48" } ] }
   ]
 }

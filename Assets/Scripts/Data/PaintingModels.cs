@@ -35,13 +35,28 @@ public class Stage
     public string Title { get; }
     public string Instruction { get; }
     public Texture2D GuideImage { get; }
+    // Suggested paint colours for this stage (may be empty).
+    public IReadOnlyList<Swatch> Swatches { get; }
 
-    public Stage(int index, string title, string instruction, Texture2D guideImage)
+    public Stage(int index, string title, string instruction, Texture2D guideImage, IReadOnlyList<Swatch> swatches)
     {
         Index = index;
         Title = title;
         Instruction = instruction;
         GuideImage = guideImage;
+        Swatches = swatches;
+    }
+}
+
+public class Swatch
+{
+    public string Name { get; }
+    public Color Colour { get; }
+
+    public Swatch(string name, Color colour)
+    {
+        Name = name;
+        Colour = colour;
     }
 }
 
@@ -64,4 +79,12 @@ public class StageJson
     public string title;
     public string instruction;
     public string guideImage;
+    public SwatchJson[] swatches; // optional
+}
+
+[Serializable]
+public class SwatchJson
+{
+    public string name;
+    public string hex; // for example "#c4643f"
 }

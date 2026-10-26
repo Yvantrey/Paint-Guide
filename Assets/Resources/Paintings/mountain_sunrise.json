@@ -6,9 +6,13 @@
   "order": 1,
   "finalImage": "mountain_sunrise_final",
   "stages": [
-    { "title": "Outline", "instruction": "Lightly sketch the mountain shapes on your canvas.", "guideImage": "mountain_sunrise_stage1" },
-    { "title": "Sky", "instruction": "Paint the sky around the sun using soft, warm colours.", "guideImage": "mountain_sunrise_stage2" },
-    { "title": "Mountains", "instruction": "Fill the mountain shapes, starting with the distant ridge.", "guideImage": "mountain_sunrise_stage3" },
-    { "title": "Details", "instruction": "Add the sun, trees and any finishing touches.", "guideImage": "mountain_sunrise_stage4" }
+    { "title": "Outline", "instruction": "Lightly sketch the mountain shapes on your canvas.", "guideImage": "mountain_sunrise_stage1",
+      "swatches": [ { "name": "Soft Pencil", "hex": "#8f877d" } ] },
+    { "title": "Sky", "instruction": "Paint the sky around the sun using soft, warm colours.", "guideImage": "mountain_sunrise_stage2",
+      "swatches": [ { "name": "Peach Sky", "hex": "#dfb294" }, { "name": "Warm Sand", "hex": "#e2c6a0" } ] },
+    { "title": "Mountains", "instruction": "Fill the mountain shapes, starting with the distant ridge.", "guideImage": "mountain_sunrise_stage3",
+      "swatches": [ { "name": "Sage Ridge", "hex": "#819083" }, { "name": "Pine", "hex": "#425e55" }, { "name": "Deep Pine", "hex": "#2d4840" } ] },
+    { "title": "Details", "instruction": "Add the sun, trees and any finishing touches.", "guideImage": "mountain_sunrise_stage4",
+      "swatches": [ { "name": "Morning Sun", "hex": "#f5dea6" }, { "name": "Forest", "hex": "#1e3832" } ] }
   ]
 }

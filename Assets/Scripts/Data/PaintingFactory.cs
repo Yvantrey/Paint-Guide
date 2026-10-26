@@ -35,7 +35,7 @@ public static class PaintingFactory
         {
             var s = json.stages[i];
             var image = LoadImage(json.id, s.guideImage) ?? GuideTextures.Placeholder(i, json.stages.Length);
-            stages.Add(new Stage(i, s.title, s.instruction, image));
+            stages.Add(new Stage(i, s.title, s.instruction, image, ParseSwatches(json.id, s.swatches)));
         }
 
         var category = json.category == "warmup" ? PaintingCategory.Warmup : PaintingCategory.Painting;
@@ -63,6 +63,22 @@ public static class PaintingFactory
         }
 
         return json;
+    }
+
+    static List<Swatch> ParseSwatches(string paintingId, SwatchJson[] swatches)
+    {
+        var result = new List<Swatch>();
+        if (swatches == null)
+            return result;
+
+        foreach (var s in swatches)
+        {
+            if (s != null && ColorUtility.TryParseHtmlString(s.hex, out var colour))
+                result.Add(new Swatch(s.name, colour));
+            else
+                Debug.LogWarning($"RUGA: Swatch '{s?.name}' in {paintingId}.json has an invalid colour '{s?.hex}'.");
+        }
+        return result;
     }
 
     static Texture2D LoadImage(string paintingId, string imageName)
